@@ -26,6 +26,8 @@ export default function DocumentDetail({ documentId, onBack }: Props) {
     const fetchDocument = async () => {
       try {
         setLoading(true);
+        setDocument(null);
+        setError(null);
         const result = await getDocumentById(documentId);
         if (result.isSuccess && result.data) {
           setDocument(result.data);

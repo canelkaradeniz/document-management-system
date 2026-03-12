@@ -87,10 +87,8 @@ export default function UploadForm({ onClose, onUploaded }: Props) {
           setMessage({ text: result.warnings.join(" "), type: "warning" });
         } else {
           setMessage({ text: "Doküman başarıyla yüklendi!", type: "success" });
-          setTimeout(() => {
-            onUploaded();
-            onClose();
-          }, 1500);
+          onUploaded();
+          setTimeout(onClose, 1200);
         }
       } else {
         setMessage({ text: result.error || "Yükleme sırasında bir hata oluştu.", type: "error" });

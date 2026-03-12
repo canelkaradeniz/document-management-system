@@ -15,11 +15,16 @@ public class DocumentsController : ControllerBase
 {
     private readonly IMediator _mediator;
     private readonly IValidator<UploadDocumentCommand> _uploadValidator;
+    private readonly IDocumentRepository _repository;
 
-    public DocumentsController(IMediator mediator, IValidator<UploadDocumentCommand> uploadValidator)
+    public DocumentsController(
+        IMediator mediator,
+        IValidator<UploadDocumentCommand> uploadValidator,
+        IDocumentRepository repository)
     {
         _mediator = mediator;
         _uploadValidator = uploadValidator;
+        _repository = repository;
     }
 
     /// <summary>
@@ -114,8 +119,7 @@ public class DocumentsController : ControllerBase
         if (string.IsNullOrWhiteSpace(contentHash))
             return BadRequest(new DuplicateCheckResult(false, null, null, "Content hash gereklidir."));
 
-        var repo = HttpContext.RequestServices.GetRequiredService<IDocumentRepository>();
-        var existing = await repo.GetByContentHashAsync(contentHash, ct);
+        var existing = await _repository.GetByContentHashAsync(contentHash, ct);
 
         if (existing is not null)
         {

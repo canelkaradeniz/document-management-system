@@ -40,13 +40,13 @@ public class DocumentRepository : IDocumentRepository
     {
         var query = _context.Documents.AsQueryable();
 
-        // Full-text-like search on name and description
+        // Case-insensitive search using EF.Functions.Like for SQLite compatibility
         if (!string.IsNullOrWhiteSpace(searchTerm))
         {
-            var term = searchTerm.ToLower();
+            var pattern = $"%{searchTerm}%";
             query = query.Where(d =>
-                d.Name.ToLower().Contains(term) ||
-                (d.Description != null && d.Description.ToLower().Contains(term)));
+                EF.Functions.Like(d.Name, pattern) ||
+                (d.Description != null && EF.Functions.Like(d.Description, pattern)));
         }
 
         if (type.HasValue)
@@ -63,8 +63,14 @@ public class DocumentRepository : IDocumentRepository
 
         if (!string.IsNullOrWhiteSpace(tag))
         {
-            // SQLite JSON search - tags stored as JSON array
-            query = query.Where(d => d.Tags.Contains(tag));
+            // Tags are stored as JSON in SQLite. We filter matching IDs via raw SQL,
+            // then use those IDs in the main LINQ query.
+            var tagPattern = $"%\"{tag}\"%";
+            var matchingIds = await _context.Documents
+                .FromSqlRaw("SELECT * FROM Documents WHERE Tags LIKE {0}", tagPattern)
+                .Select(d => d.Id)
+                .ToListAsync(ct);
+            query = query.Where(d => matchingIds.Contains(d.Id));
         }
 
         // Sorting
@@ -97,10 +103,9 @@ public class DocumentRepository : IDocumentRepository
     public async Task<List<Document>> GetSimilarByNameAsync(
         string name, DocumentType type, CancellationToken ct = default)
     {
-        var nameLower = name.ToLower();
-        // Find documents with similar names of the same type
+        var pattern = $"%{name}%";
         return await _context.Documents
-            .Where(d => d.Type == type && d.Name.ToLower().Contains(nameLower))
+            .Where(d => d.Type == type && EF.Functions.Like(d.Name, pattern))
             .Take(5)
             .ToListAsync(ct);
     }

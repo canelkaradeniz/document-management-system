@@ -53,7 +53,7 @@ export default function App() {
   };
 
   const handleUploaded = () => {
-    fetchDocuments(searchParams, page);
+    fetchDocuments(searchParams, 1);
   };
 
   if (selectedDocId) {
