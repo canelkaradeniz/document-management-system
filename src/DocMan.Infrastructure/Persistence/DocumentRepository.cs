@@ -43,7 +43,9 @@ public class DocumentRepository : IDocumentRepository
         // Case-insensitive search using EF.Functions.Like for SQLite compatibility
         if (!string.IsNullOrWhiteSpace(searchTerm))
         {
-            var pattern = $"%{searchTerm}%";
+            // Escape LIKE wildcards in user input
+            var escaped = searchTerm.Replace("%", "[%]").Replace("_", "[_]");
+            var pattern = $"%{escaped}%";
             query = query.Where(d =>
                 EF.Functions.Like(d.Name, pattern) ||
                 (d.Description != null && EF.Functions.Like(d.Description, pattern)));

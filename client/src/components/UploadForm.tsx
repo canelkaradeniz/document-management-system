@@ -7,7 +7,7 @@ interface Props {
   onUploaded: () => void;
 }
 
-// Basit bir hash hesaplama (gerçek projede SHA-256 kullanılır)
+// SHA-256 hash hesaplama - duplicate tespiti icin
 async function computeHash(file: File): Promise<string> {
   const buffer = await file.arrayBuffer();
   const hashBuffer = await crypto.subtle.digest("SHA-256", buffer);
