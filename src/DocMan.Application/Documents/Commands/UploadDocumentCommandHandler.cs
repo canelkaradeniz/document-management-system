@@ -32,15 +32,18 @@ public class UploadDocumentCommandHandler
             return Result<DocumentDto>.Success(existingByHash.ToDto(), warnings);
         }
 
-        // Similar name check
+        // Similar name check (skip if user already confirmed via forceUpload)
         var warnings2 = new List<string>();
-        var similarDocs = await _repository.GetSimilarByNameAsync(
-            request.Name, request.Type, cancellationToken);
-
-        if (similarDocs.Count > 0)
+        if (!request.ForceUpload)
         {
-            var names = string.Join(", ", similarDocs.Select(d => $"'{d.Name}'"));
-            warnings2.Add($"Benzer isimde dokümanlar bulundu: {names}. Yinelenen yükleme olmadığından emin olun.");
+            var similarDocs = await _repository.GetSimilarByNameAsync(
+                request.Name, request.Type, cancellationToken);
+
+            if (similarDocs.Count > 0)
+            {
+                var names = string.Join(", ", similarDocs.Select(d => $"'{d.Name}'"));
+                warnings2.Add($"Benzer isimde dokümanlar bulundu: {names}. Yinelenen yükleme olmadığından emin olun.");
+            }
         }
 
         var document = new Document

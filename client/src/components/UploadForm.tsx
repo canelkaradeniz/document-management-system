@@ -83,13 +83,13 @@ export default function UploadForm({ onClose, onUploaded }: Props) {
       });
 
       if (result.isSuccess) {
-        if (result.warnings && result.warnings.length > 0) {
-          setMessage({ text: result.warnings.join(" "), type: "warning" });
-        } else {
-          setMessage({ text: "Doküman başarıyla yüklendi!", type: "success" });
-          onUploaded();
-          setTimeout(onClose, 1200);
-        }
+        const hasWarnings = result.warnings && result.warnings.length > 0;
+        const msg = hasWarnings
+          ? result.warnings.join(" ")
+          : "Doküman başarıyla yüklendi!";
+        setMessage({ text: msg, type: hasWarnings ? "warning" : "success" });
+        onUploaded();
+        setTimeout(onClose, 1500);
       } else {
         setMessage({ text: result.error || "Yükleme sırasında bir hata oluştu.", type: "error" });
       }
